@@ -61,7 +61,6 @@ int main (int argc, char** argv)
 
   while(ros::ok()){
 
-    ros::spinOnce();
     auto targetCloud = pointCloud;
     auto targetPoints = getPoints(targetCloud);
 
@@ -75,6 +74,7 @@ int main (int argc, char** argv)
       ROS_INFO_STREAM("R: "<<point.r<<" G: "<<point.g<<" B: "<<point.b<<"\n");
     }
     ros::Duration(0.1).sleep();
+    ros::spin();
 
   }
 }
