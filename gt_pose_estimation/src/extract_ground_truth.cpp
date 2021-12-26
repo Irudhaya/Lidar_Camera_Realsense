@@ -7,8 +7,11 @@
 #include <tuple>
 
 typedef pcl::PointCloud<pcl::PointXYZRGB> pclPointsWithColor;
+typedef pcl::PointCloud<pcl::PointXYZ> pclPoints;
 
 pclPointsWithColor pointCloud;
+
+
 void point_cloud_cb (const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
 {
    pcl::fromROSMsg(*ros_cloud,pointCloud);
@@ -29,6 +32,16 @@ pclPointsWithColor setSourceCloud(ros::NodeHandle &nh, std::string& cloudTopic){
   return data;
 }
 
+pclPoints getPoints(pclPointsWithColor& data){
+  pclPoints points;
+
+  pcl::copyPointCloud(points,data);
+  //pcl::copyPointCloud(targetPoints,targetCloud);
+
+  //return std::make_tuple(sourcePoints,targetPoints);
+  return points;
+
+}
 
 
 int main (int argc, char** argv)
@@ -44,11 +57,13 @@ int main (int argc, char** argv)
   ROS_INFO_STREAM("Receiving the first point cloud data");
 
   auto sourceCloud = setSourceCloud(nh,topic);
+  auto sourcePoints = getPoints(sourceCloud);
 
   while(ros::ok()){
 
     ros::spinOnce();
     auto targetCloud = pointCloud;
+    auto targetPoints = getPoints(targetCloud);
 
     if (targetCloud.size()==0){
       ROS_WARN("Point cloud not received");
