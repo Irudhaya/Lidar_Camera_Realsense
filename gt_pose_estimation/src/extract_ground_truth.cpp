@@ -4,38 +4,58 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <tuple>
 
+typedef pcl::PointCloud<pcl::PointXYZRGB> pclPointsWithColor;
 
-pcl::PointCloud<pcl::PointXYZRGB> pointCloud;
+pclPointsWithColor pointCloud;
 void point_cloud_cb (const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
 {
    pcl::fromROSMsg(*ros_cloud,pointCloud);
 }
 
+pclPointsWithColor setSourceCloud(ros::NodeHandle &nh, std::string& cloudTopic){
+  
+  auto cloudData = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(cloudTopic,nh);
+  pclPointsWithColor data;
+  if (cloudData!=NULL){
+    pcl::fromROSMsg(*cloudData,data);
+    ROS_INFO("Received the source cloud");
+  }
+  else{
+    ROS_ERROR("Failed to set the source cloud");
+    ros::Duration(5).sleep();
+  }
+  return data;
+}
+
+
 
 int main (int argc, char** argv)
 {
   // Initialize ROS
-  ros::init (argc, argv, "ground_truth_cloud");
+  ros::init (argc, argv, "scan_matching_pose_estimation");
   ros::NodeHandle nh;
-
+  std::string topic{"/camera/depth_registered/points"};
   // Create a ROS subscriber for the input point cloud
-  ros::Subscriber sub = nh.subscribe ("/camera/depth_registered/points", 10, point_cloud_cb);
+  ros::Subscriber sub = nh.subscribe (topic, 10, point_cloud_cb);
   ros::Duration(2).sleep();
   ROS_INFO_STREAM("Subcribed to the point cloud topic");
-  ROS_INFO_STREAM("Extracting the ground truth cloud for pose estimation....");
+  ROS_INFO_STREAM("Receiving the first point cloud data");
+
+  auto sourceCloud = setSourceCloud(nh,topic);
 
   while(ros::ok()){
 
     ros::spinOnce();
-    auto cloudData = pointCloud;
+    auto targetCloud = pointCloud;
 
-    if (cloudData.size()==0){
+    if (targetCloud.size()==0){
       ROS_WARN("Point cloud not received");
     }
-    ROS_INFO_STREAM("Size of the point cloud: "<<cloudData.size()<<"\n");
+    ROS_INFO_STREAM("Size of the point cloud: "<<targetCloud.size()<<"\n");
     //ROS_INFO_STREAM("X: "<<pointCloud[0].x<<" Y: "<<pointCloud[0].y<<" Z: "<<pointCloud[0].z<<"\n");
-    for(const auto& point : pointCloud){
+    for(const auto& point : targetCloud){
       ROS_INFO_STREAM("X: "<<point.x<<" Y: "<<point.y<<" Z: "<<point.z<<"\n");
       ROS_INFO_STREAM("R: "<<point.r<<" G: "<<point.g<<" B: "<<point.b<<"\n");
     }
