@@ -57,6 +57,10 @@
   <exec_depend>sensor_msgs</exec_depend>
   <build_depend>libpcl-all-dev</build_depend>
   <exec_depend>libpcl-all</exec_depend>
+  <build_depend>cv_bridge</build_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <build_depend>opencv2</build_depend>
+  <exec_depend>opencv2</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
